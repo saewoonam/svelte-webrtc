@@ -1,7 +1,13 @@
 <script>
   import {onMount} from 'svelte';
   import Quagga from '@ericblade/quagga2'; // ES6
+  let results;
+
   console.log('Quagga', Quagga);
+  function detected(data) {
+    console.log(data);
+    results = JSON.stringify(data);
+  }
   onMount( ()=>{
     let video = document.getElementById('video');
     navigator.mediaDevices.getUserMedia({
@@ -16,7 +22,24 @@
     .catch(function(err) {
       console.log("An error occurred: " + err);
     });
-    
+    Quagga.init({
+      inputStream : {
+        name : "Live",
+        type : "LiveStream",
+        target: document.querySelector('#video')    // Or '#yourElement' (optional)
+      },
+      decoder : {
+        readers : ["code_128_reader"]
+      }
+    }, function(err) {
+      if (err) {
+        console.log(err);
+        return
+      }
+      console.log("Initialization finished. Ready to start");
+      Quagga.onDetected(detected);
+      Quagga.start();
+    });
   });
   
   
@@ -32,3 +55,6 @@
       <track kind="captions" />
     </video>
   </div>
+{#if results}
+results: {results}
+{/if}
